@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+
 export async function connectDb() {
    return mongoose
      .connect("mongodb://localhost:27017/student-management-system")
