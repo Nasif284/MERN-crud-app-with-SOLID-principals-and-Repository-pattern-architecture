@@ -4,12 +4,16 @@ import { StudentRepository } from "../repositories/student.repository";
 import { AdminRepository } from "../repositories/admin.repository";
 import { LoginDTO, RegisterDTO } from "../dtos/auth.dto";
 import { generateToken } from "../utils/token.utils";
+import { DbSyncService } from "./db.sync.service";
+import { IStudentDocument } from "../models/student.model";
+import { IUserDocument } from "../models/user.model";
 
 export class AuthService {
     constructor(
         private userRepo: UserRepository,
         private studentRepo: StudentRepository,
-        private adminRepo: AdminRepository
+        private adminRepo: AdminRepository,
+        private syncService: DbSyncService         
     ) { }
 
     async register(data: RegisterDTO) {
@@ -21,11 +25,18 @@ export class AuthService {
         const hashedPassword = await bcrypt.hash(data.password, 10);
         const userData = { ...data, password: hashedPassword };
 
-        let user;
+        let user: IUserDocument;
+
         if (data.role === "ADMIN") {
             user = await this.adminRepo.create(userData);
+            this.syncService
+                .onAdminCreated(user as IUserDocument & { permissions?: string[] })
+                .catch(console.error);
         } else {
             user = await this.studentRepo.create(userData);
+            this.syncService
+                .onStudentCreated(user as IStudentDocument)
+                .catch(console.error);
         }
 
         const token = generateToken({ id: user._id, role: user.role });
@@ -48,7 +59,7 @@ export class AuthService {
 
         const isMatch = await bcrypt.compare(data.password, user.password);
         if (!isMatch) {
-            console.log('Password mismatch');
+            console.log("Password mismatch");
             throw new Error("Invalid credentials");
         }
 

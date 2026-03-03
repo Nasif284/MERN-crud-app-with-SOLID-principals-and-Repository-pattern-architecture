@@ -4,7 +4,6 @@ import { authenticate, authorize } from "../middlewares/auth.middleware";
 
 const router = Router();
 
-// Apply auth middleware to all routes
 router.use(authenticate, authorize(["STUDENT"]));
 
 router.get("/profile", studentController.getProfile);

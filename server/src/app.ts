@@ -15,13 +15,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/", studentAuthRoutes);       
-app.use("/admin", adminAuthRoutes);    
+app.use("/", studentAuthRoutes);
+app.use("/admin", adminAuthRoutes);
+app.use("/admin", adminRoutes);
+app.use("/student", studentRoutes);
 
-app.use("/admin", adminRoutes);       
-app.use("/student", studentRoutes);  
-connectDb()
-const PORT =5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+const PORT = Number(process.env.PORT) || 5000;
+
+// ── Start server only after both DBs are ready ───────────────────────────────
+(async () => {
+  try {
+    await connectDb();                  // connects Mongo + SQL in sequence
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error("❌ Failed to start server:", err);
+    process.exit(1);
+  }
+})();

@@ -3,7 +3,7 @@ import { AdminService } from "../services/admin.service";
 
 export class AdminController {
     constructor(private adminService: AdminService) { }
-    
+
     getAllStudents = async (req: Request, res: Response) => {
         try {
             const students = await this.adminService.getAllStudents();
@@ -15,7 +15,7 @@ export class AdminController {
 
     blockStudent = async (req: Request, res: Response) => {
         try {
-            const result = await this.adminService.blockStudent(req.params.id);
+            const result = await this.adminService.blockStudent(req.params.id as string);
             res.json(result);
         } catch (error: any) {
             res.status(500).json({ error: error.message });
@@ -24,7 +24,7 @@ export class AdminController {
 
     unblockStudent = async (req: Request, res: Response) => {
         try {
-            const result = await this.adminService.unblockStudent(req.params.id);
+            const result = await this.adminService.unblockStudent(req.params.id as string);
             res.json(result);
         } catch (error: any) {
             res.status(500).json({ error: error.message });
@@ -33,7 +33,7 @@ export class AdminController {
 
     updateStudent = async (req: Request, res: Response) => {
         try {
-            const result = await this.adminService.updateStudent(req.params.id, req.body);
+            const result = await this.adminService.updateStudent(req.params.id as string, req.body);
             res.json(result);
         } catch (error: any) {
             res.status(500).json({ error: error.message });

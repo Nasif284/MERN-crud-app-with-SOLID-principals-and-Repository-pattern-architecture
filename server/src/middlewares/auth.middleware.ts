@@ -11,7 +11,6 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
         res.status(401).json({ error: "Access denied. No token provided." });
         return;
     }
-
     try {
         const decoded = verifyToken(token);
         (req as AuthenticatedRequest).user = decoded;
