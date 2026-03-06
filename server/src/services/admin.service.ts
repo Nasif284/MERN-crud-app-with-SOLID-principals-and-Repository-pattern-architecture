@@ -4,18 +4,18 @@ import { DbSyncService } from "./db.sync.service";
 
 export class AdminService {
     constructor(
-        private studentRepo: StudentRepository,
-        private syncService: DbSyncService          
+        private _studentRepo: StudentRepository,
+        private _syncService: DbSyncService
     ) { }
 
     async getAllStudents(): Promise<IStudentDocument[]> {
-        return this.studentRepo.findAll();
+        return this._studentRepo.findAll();
     }
 
     async blockStudent(id: string): Promise<IStudentDocument | null> {
-        const student = await this.studentRepo.update(id, { blocked: true });
+        const student = await this._studentRepo.update(id, { blocked: true });
         if (student) {
-            this.syncService
+            this._syncService
                 .onStudentBlockStatusChanged(String(student._id), true)
                 .catch(console.error);
         }
@@ -23,9 +23,9 @@ export class AdminService {
     }
 
     async unblockStudent(id: string): Promise<IStudentDocument | null> {
-        const student = await this.studentRepo.update(id, { blocked: false });
+        const student = await this._studentRepo.update(id, { blocked: false });
         if (student) {
-            this.syncService
+            this._syncService
                 .onStudentBlockStatusChanged(String(student._id), false)
                 .catch(console.error);
         }
@@ -36,9 +36,9 @@ export class AdminService {
         id: string,
         data: Partial<IStudentDocument>
     ): Promise<IStudentDocument | null> {
-        const student = await this.studentRepo.update(id, data);
+        const student = await this._studentRepo.update(id, data);
         if (student) {
-            this.syncService.onStudentUpdated(student).catch(console.error);
+            this._syncService.onStudentUpdated(student).catch(console.error);
         }
         return student;
     }

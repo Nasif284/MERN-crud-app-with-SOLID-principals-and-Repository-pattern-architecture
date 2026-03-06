@@ -1,24 +1,25 @@
 import { Request, Response } from "express";
 import { StudentService } from "../services/student.service";
+import { HttpStatus } from "../utils/statusCodes";
 
 export interface AuthenticatedRequest extends Request {
   user?: any; // To be populated by middleware
 }
 
 export class StudentController {
-  constructor(private studentService: StudentService) { }
+  constructor(private _studentService: StudentService) { }
 
   getProfile = async (req: Request, res: Response) => {
     try {
       const userId = (req as AuthenticatedRequest).user?.id;
       if (!userId) {
-        res.status(401).json({ error: "Unauthorized" });
+        res.status(HttpStatus.UNAUTHORIZED).json({ error: "Unauthorized" });
         return;
       }
-      const student = await this.studentService.getProfile(userId);
-      res.json(student);
+      const student = await this._studentService.getProfile(userId);
+      res.status(HttpStatus.OK).json(student);
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message });
     }
   }
 
@@ -26,13 +27,13 @@ export class StudentController {
     try {
       const userId = (req as AuthenticatedRequest).user?.id;
       if (!userId) {
-        res.status(401).json({ error: "Unauthorized" });
+        res.status(HttpStatus.UNAUTHORIZED).json({ error: "Unauthorized" });
         return;
       }
-      const student = await this.studentService.updateProfile(userId, req.body);
-      res.json(student);
+      const student = await this._studentService.updateProfile(userId, req.body);
+      res.status(HttpStatus.OK).json(student);
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message });
     }
   }
 }

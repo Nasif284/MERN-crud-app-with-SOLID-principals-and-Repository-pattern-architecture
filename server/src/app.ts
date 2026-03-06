@@ -20,17 +20,16 @@ app.use("/admin", adminAuthRoutes);
 app.use("/admin", adminRoutes);
 app.use("/student", studentRoutes);
 
-const PORT = Number(process.env.PORT) || 5000;
+const PORT = 5000;
 
-// ── Start server only after both DBs are ready ───────────────────────────────
 (async () => {
   try {
-    await connectDb();                  // connects Mongo + SQL in sequence
+    await connectDb();            
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`Server running on port ${PORT}`);
     });
   } catch (err) {
-    console.error("❌ Failed to start server:", err);
+    console.error("Failed to start server:", err);
     process.exit(1);
   }
 })();

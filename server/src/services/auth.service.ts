@@ -3,21 +3,21 @@ import { UserRepository } from "../repositories/user.repository";
 import { StudentRepository } from "../repositories/student.repository";
 import { AdminRepository } from "../repositories/admin.repository";
 import { LoginDTO, RegisterDTO } from "../dtos/auth.dto";
-import { generateToken } from "../utils/token.utils";
+import { generateToken, generateRefreshToken, verifyRefreshToken } from "../utils/token.utils";
 import { DbSyncService } from "./db.sync.service";
 import { IStudentDocument } from "../models/student.model";
 import { IUserDocument } from "../models/user.model";
 
 export class AuthService {
     constructor(
-        private userRepo: UserRepository,
-        private studentRepo: StudentRepository,
-        private adminRepo: AdminRepository,
-        private syncService: DbSyncService         
+        private _userRepo: UserRepository,
+        private _studentRepo: StudentRepository,
+        private _adminRepo: AdminRepository,
+        private _syncService: DbSyncService
     ) { }
 
     async register(data: RegisterDTO) {
-        const existing = await this.userRepo.findByEmail(data.email);
+        const existing = await this._userRepo.findByEmail(data.email);
         if (existing) {
             throw new Error("Email already taken");
         }
@@ -28,23 +28,24 @@ export class AuthService {
         let user: IUserDocument;
 
         if (data.role === "ADMIN") {
-            user = await this.adminRepo.create(userData);
-            this.syncService
+            user = await this._adminRepo.create(userData);
+            this._syncService
                 .onAdminCreated(user as IUserDocument & { permissions?: string[] })
                 .catch(console.error);
         } else {
-            user = await this.studentRepo.create(userData);
-            this.syncService
+            user = await this._studentRepo.create(userData);
+            this._syncService
                 .onStudentCreated(user as IStudentDocument)
                 .catch(console.error);
         }
 
-        const token = generateToken({ id: user._id, role: user.role });
-        return { user, token };
+        const accessToken = generateToken({ id: user._id, role: user.role });
+        const refreshToken = generateRefreshToken({ id: user._id, role: user.role });
+        return { user, accessToken, refreshToken };
     }
 
     async login(data: LoginDTO, role: "ADMIN" | "STUDENT") {
-        const user = await this.userRepo.findByEmail(data.email);
+        const user = await this._userRepo.findByEmail(data.email);
         if (!user) {
             throw new Error("Invalid credentials");
         }
@@ -63,7 +64,22 @@ export class AuthService {
             throw new Error("Invalid credentials");
         }
 
-        const token = generateToken({ id: user._id, role: user.role });
-        return { user, token };
+        const accessToken = generateToken({ id: user._id, role: user.role });
+        const refreshToken = generateRefreshToken({ id: user._id, role: user.role });
+        return { user, accessToken, refreshToken };
+    }
+
+    async refreshToken(token: string) {
+        try {
+            const decoded = verifyRefreshToken(token);
+            const user = await this._userRepo.findById(decoded.id);
+            if (!user || user.blocked) {
+                throw new Error("Invalid or blocked user");
+            }
+            const accessToken = generateToken({ id: user._id, role: user.role });
+            return { accessToken };
+        } catch (error) {
+            throw new Error("Invalid refresh token");
+        }
     }
 }

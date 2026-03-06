@@ -8,20 +8,20 @@ import { AdminSqlRepository } from "../repositories/sql/admin.sql.repository";
 
 import { IUserDocument } from "../models/user.model";
 import { IStudentDocument } from "../models/student.model";
-import { RegisterDTO } from "../dtos/auth.dto";
 
 export class DbSyncService {
     constructor(
-        private userMongoRepo: UserRepository,
-        private studentMongoRepo: StudentRepository,
-        private adminMongoRepo: AdminRepository,
-        private userSqlRepo: UserSqlRepository,
-        private studentSqlRepo: StudentSqlRepository,
-        private adminSqlRepo: AdminSqlRepository
+        private _userMongoRepo: UserRepository,
+        private _studentMongoRepo: StudentRepository,
+        private _adminMongoRepo: AdminRepository,
+        private _userSqlRepo: UserSqlRepository,
+        private _studentSqlRepo: StudentSqlRepository,
+        private _adminSqlRepo: AdminSqlRepository
     ) { }
-    private async syncUserToSql(user: IUserDocument): Promise<number | null> {
+
+    private async _syncUserToSql(user: IUserDocument): Promise<number | null> {
         try {
-            const existing = await this.userSqlRepo.findByMongoId(
+            const existing = await this._userSqlRepo.findByMongoId(
                 String(user._id)
             );
 
@@ -36,7 +36,7 @@ export class DbSyncService {
                 return existing.id;
             }
 
-            const created = await this.userSqlRepo.create({
+            const created = await this._userSqlRepo.create({
                 mongoId: String(user._id),
                 name: user.name,
                 email: user.email,
@@ -52,13 +52,13 @@ export class DbSyncService {
     }
 
     async onStudentCreated(student: IStudentDocument): Promise<void> {
-        const sqlUserId = await this.syncUserToSql(student);
+        const sqlUserId = await this._syncUserToSql(student);
         if (!sqlUserId) return;
 
         try {
-            const existing = await this.studentSqlRepo.findByUserId(sqlUserId);
+            const existing = await this._studentSqlRepo.findByUserId(sqlUserId);
             if (!existing) {
-                await this.studentSqlRepo.create({
+                await this._studentSqlRepo.create({
                     userId: sqlUserId,
                     course: student.course,
                     age: student.age,
@@ -71,13 +71,13 @@ export class DbSyncService {
     }
 
     async onAdminCreated(user: IUserDocument & { permissions?: string[] }): Promise<void> {
-        const sqlUserId = await this.syncUserToSql(user);
+        const sqlUserId = await this._syncUserToSql(user);
         if (!sqlUserId) return;
 
         try {
-            const existing = await this.adminSqlRepo.findByUserId(sqlUserId);
+            const existing = await this._adminSqlRepo.findByUserId(sqlUserId);
             if (!existing) {
-                await this.adminSqlRepo.create({
+                await this._adminSqlRepo.create({
                     userId: sqlUserId,
                     permissions: JSON.stringify(user.permissions ?? []),
                 });
@@ -89,11 +89,11 @@ export class DbSyncService {
     }
 
     async onStudentUpdated(student: IStudentDocument): Promise<void> {
-        const sqlUserId = await this.syncUserToSql(student);
+        const sqlUserId = await this._syncUserToSql(student);
         if (!sqlUserId) return;
 
         try {
-            const studentRow = await this.studentSqlRepo.findByUserId(sqlUserId);
+            const studentRow = await this._studentSqlRepo.findByUserId(sqlUserId);
             if (studentRow) {
                 await studentRow.update({
                     course: student.course,
@@ -111,7 +111,7 @@ export class DbSyncService {
         blocked: boolean
     ): Promise<void> {
         try {
-            const userRow = await this.userSqlRepo.findByMongoId(mongoId);
+            const userRow = await this._userSqlRepo.findByMongoId(mongoId);
             if (userRow) {
                 await userRow.update({ blocked });
                 console.log(
@@ -129,7 +129,7 @@ export class DbSyncService {
         console.log("[Sync] Starting full re-sync from MongoDB → SQL...");
 
         try {
-            const students = await this.studentMongoRepo.findAll();
+            const students = await this._studentMongoRepo.findAll();
             for (const student of students) {
                 try {
                     await this.onStudentCreated(student);

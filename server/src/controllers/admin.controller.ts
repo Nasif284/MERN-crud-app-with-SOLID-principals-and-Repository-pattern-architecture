@@ -1,42 +1,43 @@
 import { Request, Response } from "express";
 import { AdminService } from "../services/admin.service";
+import { HttpStatus } from "../utils/statusCodes";
 
 export class AdminController {
-    constructor(private adminService: AdminService) { }
+    constructor(private _adminService: AdminService) { }
 
     getAllStudents = async (req: Request, res: Response) => {
         try {
-            const students = await this.adminService.getAllStudents();
-            res.json(students);
+            const students = await this._adminService.getAllStudents();
+            res.status(HttpStatus.OK).json(students);
         } catch (error: any) {
-            res.status(500).json({ error: error.message });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message });
         }
     }
 
     blockStudent = async (req: Request, res: Response) => {
         try {
-            const result = await this.adminService.blockStudent(req.params.id as string);
-            res.json(result);
+            const result = await this._adminService.blockStudent(req.params.id as string);
+            res.status(HttpStatus.OK).json(result);
         } catch (error: any) {
-            res.status(500).json({ error: error.message });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message });
         }
     }
 
     unblockStudent = async (req: Request, res: Response) => {
         try {
-            const result = await this.adminService.unblockStudent(req.params.id as string);
-            res.json(result);
+            const result = await this._adminService.unblockStudent(req.params.id as string);
+            res.status(HttpStatus.OK).json(result);
         } catch (error: any) {
-            res.status(500).json({ error: error.message });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message });
         }
     }
 
     updateStudent = async (req: Request, res: Response) => {
         try {
-            const result = await this.adminService.updateStudent(req.params.id as string, req.body);
-            res.json(result);
+            const result = await this._adminService.updateStudent(req.params.id as string, req.body);
+            res.status(HttpStatus.OK).json(result);
         } catch (error: any) {
-            res.status(500).json({ error: error.message });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message });
         }
     }
 }

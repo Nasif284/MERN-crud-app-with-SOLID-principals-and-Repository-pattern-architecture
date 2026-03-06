@@ -8,10 +8,9 @@ export async function connectMongoDB(): Promise<void> {
         const uri = process.env.MONGO_URI || "mongodb://localhost:27017/student-management-system";
         try {
                 await mongoose.connect(uri);
-                console.log("✅ MongoDB connected");
+                console.log("MongoDB connected");
         } catch (err) {
-                console.error("❌ MongoDB connection error:", err);
-                process.exit(1);
+                console.error("MongoDB connection error:", err);
         }
 }
 
@@ -25,11 +24,11 @@ export const sequelize = new Sequelize(dbUrl, {
 export async function connectSQL(): Promise<void> {
         try {
                 await sequelize.authenticate();
-                console.log("✅ PostgreSQL connected");
+                console.log("PostgreSQL connected");
                 await sequelize.sync();
-                console.log("✅ SQL tables synced");
+                console.log("SQL tables synced");
         } catch (err) {
-                console.error("❌ SQL connection error:", err);
+                console.error("SQL connection error:", err);
                 process.exit(1);
         }
 }

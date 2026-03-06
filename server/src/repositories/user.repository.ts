@@ -7,6 +7,6 @@ export class UserRepository extends BaseRepository<IUserDocument> {
     }
 
     async findByEmail(email: string): Promise<IUserDocument | null> {
-        return await this.model.findOne({ email }).exec();
+        return await this._model.findOne({ email }).exec();
     }
 }
